@@ -107,9 +107,7 @@ public class Main {
         }
         // close the bufferedReader
         bufferedReader2.close();
-        // 최윤혜 깃허브 연습 아무말
-        // 주석추가!
-        System.out.println("유네 깃허브 연습");
+
 
     }
 }

@@ -1,5 +1,6 @@
 //sejung check
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Main {
@@ -109,10 +110,25 @@ public class Main {
         // close the bufferedReader
         bufferedReader2.close();
 
+        Point gpsPoint = new Point(1.0,2.0);
+        ArrayList<Link> candidateLink = new ArrayList<>();
+        candidateLink = gpsPoint.findRadiusLink(linkArrayList,nodeArrayList);
+        ArrayList<Point> candidate = new ArrayList<>();
+        for(int i=0;i<candidateLink.size();i++)//모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
+            candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
     }
 
-    public Double coordDistanceofPoints(Point a, Point b){
+    public static Double coordDistanceofPoints(Point a, Point b){
         return Math.sqrt(Math.pow(a.getX()-b.getX(),2)+Math.pow(a.getY()-b.getY(),2));
     }//유클리드 거리 구하기
-}
 
+    public static ArrayList<Point> findRadiusPoint(Point center, Link link, Integer Radius){//Link 안, 반경 내 involving node들만 반환
+        ArrayList<Point> allInvolvingPoint =link.getInvolvingPointList();
+        ArrayList<Point> resultPoint = new ArrayList<>();
+        for(int i=0;i<allInvolvingPoint.size();i++){
+            if(coordDistanceofPoints(center,allInvolvingPoint.get(i))<=Radius)
+                resultPoint.add(allInvolvingPoint.get(i));
+        }
+        return resultPoint;
+    }
+}

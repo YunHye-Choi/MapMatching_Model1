@@ -5,6 +5,10 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("===== [YSY] Map Matching Model 1 ====");
 
+        // 파일이 저장된 path name
+        // ㄱ자형: 1, ㅁ자형: 2, ㄹ자형: 3
+        String directoryName = "simple_1"; // 이거 숫자만 변경하면됨!
+
         // 데이터를 보관할 ArrayList들
         ArrayList<Node> nodeArrayList = new ArrayList<>();
         ArrayList<Link> linkArrayList = new ArrayList<>();
@@ -13,7 +17,7 @@ public class Main {
 
         /*=======Node.txt 파일읽어오기 작업========*/
         //파일 객체 생성
-        File file1 = new File("C:\\MapMatching\\Model1\\simple_2\\Node.txt");
+        File file1 = new File("./" + directoryName + "/Node.txt");
         //입력 스트림 생성
         FileReader fileReader1 = new FileReader(file1);
         //BufferedReader 클래스 이용하여 파일 읽어오기
@@ -32,7 +36,7 @@ public class Main {
 
         /*=======Link.txt 파일읽어오기 작업========*/
         //파일 객체 생성
-        File file2 = new File("C:\\MapMatching\\Model1\\simple_2\\Link.txt");
+        File file2 = new File("./" + directoryName + "/Link.txt");
         //입력 스트림 생성
         FileReader fileReader2 = new FileReader(file2);
         //BufferedReader 클래스 이용하여 파일 읽어오기

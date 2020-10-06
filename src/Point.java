@@ -38,13 +38,13 @@ public class Point {
         this.y = y;
     }
 
-    public ArrayList<Integer> findRadiusLink(ArrayList<Link> linkArrayList, ArrayList<Node> nodeArrayList){
+    public ArrayList<Link> findRadiusLink(ArrayList<Link> linkArrayList, ArrayList<Node> nodeArrayList){
         int Radiusnum = 2;
-        ArrayList<Integer> RadiusLinkID = new ArrayList<>();
+        ArrayList<Link> RadiusLinkID = new ArrayList<>();
         for(int i=0;i<linkArrayList.size();i++){//원 안에 시작,끝점이 있는 경우
             if(this.coordDistance(nodeArrayList.get(linkArrayList.get(i).getStartNodeID()).getCoordinate())<Radiusnum||
                     this.coordDistance(nodeArrayList.get(linkArrayList.get(i).getEndNodeID()).getCoordinate())<Radiusnum)
-                RadiusLinkID.add(linkArrayList.get(i).getLinkID());
+                RadiusLinkID.add(linkArrayList.get(i));
             else{// 원 안에 시작, 끝점이 없는 경우
                 double startX = nodeArrayList.get(linkArrayList.get(i).getStartNodeID()).getCoordinate().getX();
                 double startY = nodeArrayList.get(linkArrayList.get(i).getStartNodeID()).getCoordinate().getY();
@@ -57,11 +57,12 @@ public class Point {
                 //원의 중심 부터 직선 사이의 거리가 반지름보다 작은 경우
                 if(Math.abs(inclination*this.getX()-this.getY()+Y_Intercept)/Math.sqrt(Math.pow(inclination,2)+1)<Radiusnum) {
                     //원의 중심 부터 직선까지의 거리가 r보다 작다면 다음 식에 들어오게 된다.
-                    Vector2D vectorFromCircle = new Vector2D(startX-this.getX(),startY-this.getY());
+                    Vector2D vectorFromCircleToLine1 = new Vector2D(endX-this.getX(),endY-this.getY());
+                    Vector2D vectorFromCircleToLine2 = new Vector2D(startX-this.getX(),startY-this.getY());
                     Vector2D vectorLine1 = new Vector2D(startX-endX,startY-endY);
                     Vector2D vectorLine2 = new Vector2D(endX-startX,endY-startY);
-                    if(Math.acos(vectorFromCircle.dot(vectorLine1))>=90&&Math.acos(vectorFromCircle.dot(vectorLine2))>=90)
-                        RadiusLinkID.add(linkArrayList.get(i).getLinkID());
+                    if(Math.acos(vectorFromCircleToLine1.dot(vectorLine1))>=90&&Math.acos(vectorFromCircleToLine2.dot(vectorLine2))>=90)
+                        RadiusLinkID.add(linkArrayList.get(i));
                 }
             }
         }

@@ -109,10 +109,10 @@ public class Main {
         // close the bufferedReader
         bufferedReader2.close();
 
-        // 유네 깃허브연습 세번째~ 커밋푸시만 하는중~ 더 많은
-        // pull request나 fetch등 기능 알아야할듯!
-        // 그리고 push랑 commit밖에 안된다! 누군가 바꿔줘야 내가 
-        // pull할 수 있는듯...? 내가 못하는것같기도 하다..흐윽
     }
+
+    public Double coordDistanceofPoints(Point a, Point b){
+        return Math.sqrt(Math.pow(a.getX()-b.getX(),2)+Math.pow(a.getY()-b.getY(),2));
+    }//유클리드 거리 구하기
 }
 

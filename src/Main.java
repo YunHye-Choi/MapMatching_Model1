@@ -129,6 +129,7 @@ public class Main {
             Thread.sleep(500); // 500ms 마다 출력
         }
     }
+
     // GPS 포인트 1초에 1개씩 생성하는 함수
     private static void GenerateGPSPoint(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
         /////////// ㄱ, ㅁ, ㄹ에만 적용되는 코드임//////////
@@ -221,5 +222,74 @@ public class Main {
             count++;
         }
     }
-}
 
+    //////////////////세정/////////////
+    private static void Transition(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
+        double tp_gps_x;
+        double tp_gps_y;
+        double tp_route_x;
+        double tp_route_y;
+        double tp_gps_distance;
+        double tp_route_distance;
+        double dt=0;
+        ArrayList<Double> tpArraylist= new ArrayList<>();
+
+        for (int i = 0; i < gpsPointArrayList.size()-1; i++) {
+            tp_gps_x = Math.pow(gpsPointArrayList.get(i).getX()-gpsPointArrayList.get(i+1).getX(),2);
+            tp_gps_y = Math.pow(gpsPointArrayList.get(i).getY()-gpsPointArrayList.get(i+1).getY(),2);
+            tp_gps_distance = Math.sqrt(tp_gps_x+tp_gps_y); //gps상의 거리
+            tp_route_x = Math.pow(routePointArrayList.get(i).getX()-routePointArrayList.get(i+1).getX(),2);
+            tp_route_y = Math.pow(routePointArrayList.get(i).getY()-routePointArrayList.get(i+1).getY(),2);
+            tp_route_distance = Math.sqrt(tp_route_x+tp_route_y); //경로상의 거리, 직선거리
+            dt = Math.abs(tp_gps_distance-tp_route_distance);
+            System.out.println(dt);
+            tpArraylist.set(i, dt);
+        }
+
+        double beta;
+        double dt_average = 0; //경로상의 거리와 직선 거리의 차이의 평균값
+        double tp;
+
+        for(int i=0; i< tpArraylist.size(); i++)
+        {
+            dt_average = dt_average + tpArraylist.get(i);
+        }
+        dt_average = dt_average / tpArraylist.size();
+        beta = dt_average / Math.log(2);
+        tp = Math.exp((dt * -1) / beta) / beta;
+
+    }
+
+
+    private static void Emission(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
+        double ep_gps_x;
+        double ep_gps_y;
+        double ep_distance = 0;
+
+        ArrayList<Double> epArraylist= new ArrayList<>();
+
+        for (int i = 0; i < gpsPointArrayList.size(); i++) {
+            ep_gps_x = Math.pow(routePointArrayList.get(i).getX()-gpsPointArrayList.get(i).getX(),2);
+            ep_gps_y = Math.pow(routePointArrayList.get(i).getY()-gpsPointArrayList.get(i).getY(),2);
+            ep_distance = Math.sqrt(ep_gps_x+ep_gps_y);
+            epArraylist.set(i, ep_distance);
+            System.out.println(ep_distance);
+        }
+
+        double sigma;
+        double sigma_average = 0; //실제 위치값과 gps값 차이의 평균값
+        double ep;
+
+        for(int i=0; i< epArraylist.size(); i++)
+        {
+            sigma_average = sigma_average + epArraylist.get(i);
+        }
+        sigma_average = sigma_average/epArraylist.size();
+        sigma = 1.4826 * sigma_average;
+        ep = Math.exp(Math.pow(ep_distance / sigma,2) * (-0.5)) / (Math.sqrt(2) * Math.PI * sigma);
+
+    }
+
+    ////////////////////
+
+}

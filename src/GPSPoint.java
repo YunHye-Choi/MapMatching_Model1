@@ -13,6 +13,11 @@ public class GPSPoint {
         coordinate = new Point (gps_x, gps_y);
     }
 
+    //////sj////
+    public Double getX(){return coordinate.getX();}
+    public Double getY(){return coordinate.getY();}
+    //////////
+
     public String toString() {
         return "[" + timeStamp+ "] " + coordinate;
     }

@@ -13,6 +13,10 @@ public class GPSPoint {
         coordinate = new Point (gps_x, gps_y);
     }
 
+    public Point getPoint() {
+        return coordinate;
+    }
+
     public String toString() {
         return "[" + timeStamp+ "] " + coordinate;
     }

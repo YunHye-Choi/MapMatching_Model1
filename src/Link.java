@@ -68,4 +68,5 @@ public class Link {
     public void setInvolvingPointList(ArrayList<Point> involvingPointList) {
         this.involvingPointList = involvingPointList;
     }
+
 }

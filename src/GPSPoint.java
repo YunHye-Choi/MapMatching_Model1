@@ -13,6 +13,10 @@ public class GPSPoint {
         coordinate = new Point (gps_x, gps_y);
     }
 
+    public Point getPoint() {
+        return coordinate;
+    }
+
     //////sj////
     public Double getX(){return coordinate.getX();}
     public Double getY(){return coordinate.getY();}

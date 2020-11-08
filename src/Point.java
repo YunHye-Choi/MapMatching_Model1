@@ -39,7 +39,7 @@ public class Point {
     }
 
     public ArrayList<Link> findRadiusLink(ArrayList<Link> linkArrayList, ArrayList<Node> nodeArrayList){
-        int Radiusnum = 5;
+        int Radiusnum = 3;
         ArrayList<Link> RadiusLinkID = new ArrayList<>();
         for(int i=0;i<linkArrayList.size();i++){//원 안에 시작,끝점이 있는 경우
             if(this.coordDistance(nodeArrayList.get(linkArrayList.get(i).getStartNodeID()).getCoordinate())<Radiusnum||

@@ -1,12 +1,13 @@
 //sejung check
+import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("===== [YSY] Map Matching Model 1 ====");
 
+        System.out.println("===== [YSY] Map Matching Model 1 ====");
         // 파일이 저장된 path name
         // ㄱ자형: 1, ㅁ자형: 2, ㄹ자형: 3
         String directoryName = "simple_1"; // 이거 숫자만 변경하면됨!
@@ -16,6 +17,7 @@ public class Main {
         ArrayList<Link> linkArrayList = new ArrayList<>();
         ArrayList<GPSPoint> gpsPointArrayList = new ArrayList<>();
         ArrayList<Point> routePointArrayList = new ArrayList<>(); // 실제 경로의 points!
+        ArrayList<Point> matching_success = new ArrayList<>();
 
         /*=======Node.txt 파일읽어오기 작업========*/
         //파일 객체 생성
@@ -125,8 +127,15 @@ public class Main {
         // 20.10.06. GPS포인트 생성 구현
 
         GenerateGPSPoint(linkArrayList, gpsPointArrayList, routePointArrayList);
-
         // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
+        for(int i=0; i<gpsPointArrayList.size(); i++){
+            Emission_Median(gpsPointArrayList.get(i), routePointArrayList.get(i));
+            if(i>0){
+                Transition_Median(gpsPointArrayList.get(i-1), gpsPointArrayList.get(i),routePointArrayList.get(i-1), routePointArrayList.get(i));
+            }//매칭된 point로 해야하나.. 실제 point로 해야하나.. 의문?
+            //중앙값 저장
+        }
+
         for (int i = 0; i < gpsPointArrayList.size(); i++) {
             ArrayList<Link> candidateLink = new ArrayList<>();
             System.out.println(routePointArrayList.get(i));
@@ -134,12 +143,23 @@ public class Main {
             candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(linkArrayList,nodeArrayList));
             System.out.println("Link : "+candidateLink);
             ArrayList<Point> candidates= new ArrayList<>();
-            for(int j=0;j<candidateLink.size();j++){
-                candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(),candidateLink.get(j),5));
+            for(int j=0;j<candidateLink.size();j++) {
+                candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
             }
             System.out.println("candidate : "+candidates);
-            Thread.sleep(500); // 500ms 마다 출력
+            //Thread.sleep(500); // 500ms 마다 출력
+            matching_success.add(Matching(candidates, gpsPointArrayList, routePointArrayList, matching_success, i+1)); //size 1부터 시작
+            System.out.print("matching: ");
+            System.out.println(matching_success.get(i)); //매칭된 point 출력
+            System.out.print("\n");
         }
+
+        for(int i=0; i< matching_success.size(); i++)
+        {
+            System.out.println(matching_success.get(i));
+        } //매칭된 결과값 출력
+
+
         // 유네가 쓴 머지한 코드 끝///////////////////
 
         //유림이가 썼던 코드
@@ -148,8 +168,11 @@ public class Main {
         candidateLink = gpsPoint.findRadiusLink(linkArrayList,nodeArrayList);
         ArrayList<Point> candidate = new ArrayList<>();
         for(int i=0;i<candidateLink.size();i++)//모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
-            candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
+        {
+            candidate.addAll(findRadiusPoint(gpsPoint, candidateLink.get(i), 2));
+        }
     }
+
 
     // GPS 포인트 1초에 1개씩 생성하는 함수
     private static void GenerateGPSPoint(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
@@ -242,9 +265,6 @@ public class Main {
             }
             count++;
         }
-
-
-
     }
 
     public static Double coordDistanceofPoints(Point a, Point b){
@@ -260,71 +280,174 @@ public class Main {
         }
         return resultPoint;
     }
+
+
     //////////////////세정/////////////
-    private static void Transition(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
-        double tp_gps_x;
-        double tp_gps_y;
-        double tp_route_x;
-        double tp_route_y;
-        double tp_gps_distance;
-        double tp_route_distance;
-        double dt=0;
-        ArrayList<Double> tpArraylist= new ArrayList<>();
+    static ArrayList<Double> tp_median;
+    static ArrayList<Double> ep_median; //실제 위치값과 gps값 차이. arraylist로 저장
 
-        for (int i = 0; i < gpsPointArrayList.size()-1; i++) {
-            tp_gps_x = Math.pow(gpsPointArrayList.get(i).getX()-gpsPointArrayList.get(i+1).getX(),2);
-            tp_gps_y = Math.pow(gpsPointArrayList.get(i).getY()-gpsPointArrayList.get(i+1).getY(),2);
-            tp_gps_distance = Math.sqrt(tp_gps_x+tp_gps_y); //gps상의 거리
-            tp_route_x = Math.pow(routePointArrayList.get(i).getX()-routePointArrayList.get(i+1).getX(),2);
-            tp_route_y = Math.pow(routePointArrayList.get(i).getY()-routePointArrayList.get(i+1).getY(),2);
-            tp_route_distance = Math.sqrt(tp_route_x+tp_route_y); //경로상의 거리, 직선거리
-            dt = Math.abs(tp_gps_distance-tp_route_distance);
-            System.out.println(dt);
-            tpArraylist.set(i, dt);
-        }
-
-        double beta;
-        double dt_average = 0; //경로상의 거리와 직선 거리의 차이의 평균값
-        double tp;
-
-        for(int i=0; i< tpArraylist.size(); i++)
-        {
-            dt_average = dt_average + tpArraylist.get(i);
-        }
-        dt_average = dt_average / tpArraylist.size();
-        beta = dt_average / Math.log(2);
-        tp = Math.exp((dt * -1) / beta) / beta;
-
+    static {
+        tp_median = new ArrayList<Double>();
+        ep_median = new ArrayList<Double>();
     }
+    // tp, ep 전역변수 선언, static:클래스에서도 호출 가능
 
-
-    private static void Emission(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
-        double ep_gps_x;
-        double ep_gps_y;
+    public static double Emission(GPSPoint gps, Point candidate, int size) {
         double ep_distance = 0;
 
-        ArrayList<Double> epArraylist= new ArrayList<>();
+        Point gpspoint = new Point(0.0, 0.0);
+        gpspoint.setX(gps.getX());
+        gpspoint.setY(gps.getY());
 
-        for (int i = 0; i < gpsPointArrayList.size(); i++) {
-            ep_gps_x = Math.pow(routePointArrayList.get(i).getX()-gpsPointArrayList.get(i).getX(),2);
-            ep_gps_y = Math.pow(routePointArrayList.get(i).getY()-gpsPointArrayList.get(i).getY(),2);
-            ep_distance = Math.sqrt(ep_gps_x+ep_gps_y);
-            epArraylist.set(i, ep_distance);
-            System.out.println(ep_distance);
-        }
+        ep_distance = coordDistanceofPoints(candidate, gpspoint); //후보point와 gps point의 유클리드 직선 거리
 
-        double sigma;
-        double sigma_average = 0; //실제 위치값과 gps값 차이의 평균값
-        double ep;
+        if(size==1 || size == 2) {
+            return ep_distance;
+        } //size: gps배열 사이즈
 
-        for(int i=0; i< epArraylist.size(); i++)
-        {
-            sigma_average = sigma_average + epArraylist.get(i);
-        }
-        sigma_average = sigma_average/epArraylist.size();
-        sigma = 1.4826 * sigma_average;
+        double ep = 0;
+        double sigma=0;
+        System.out.print("ep_median : ");
+        System.out.println(ep_median.get(ep_median.size()/2));
+        sigma = (1.4826) * ep_median.get((ep_median.size()/2));
+
         ep = Math.exp(Math.pow(ep_distance / sigma,2) * (-0.5)) / (Math.sqrt(2) * Math.PI * sigma);
 
+        System.out.println(candidate);
+        System.out.print("ep : ");
+        System.out.println(ep);
+        return ep;
+    } //GPS와 후보의 거리 구하기, 중앙값 배열에 저장
+
+    public static void Emission_Median(GPSPoint gps, Point matching){
+        double ep_distance = 0;
+
+        Point gpspoint = new Point(0.0, 0.0);
+        gpspoint.setX(gps.getX());
+        gpspoint.setY(gps.getY());
+
+        ep_distance = coordDistanceofPoints(matching, gpspoint); //매칭된 포인트와 gps point의 유클리드 직선거리
+
+        if(ep_median.size() == 0)
+            ep_median.add(ep_distance);
+
+        else {
+            for (int i = 0; i < ep_median.size(); i++) {
+                if (ep_median.get(i) > ep_distance) {
+                    ep_median.add(i, ep_distance);
+                    break;
+                }
+                if(i == ep_median.size()-1){
+                    ep_median.add(ep_distance);
+                    break;
+                }
+            }//위치 찾고 삽입
+        }
+    }//중앙값 저장
+
+    public static double Transition(GPSPoint gps_pre, GPSPoint gps, Point matching_pre, Point candidate) {
+
+        double tp_gps_distance, tp_route_distance;
+        double dt=0;
+
+        Point gpspoint_pre = new Point(0.0, 0.0);
+        gpspoint_pre.setX(gps_pre.getX());
+        gpspoint_pre.setY(gps_pre.getY());
+
+        Point gpspoint = new Point(0.0, 0.0);
+        gpspoint.setX(gps.getX());
+        gpspoint.setY(gps.getY());
+        tp_gps_distance = coordDistanceofPoints(gpspoint_pre, gpspoint); //이전gps_point 와 gps_point의 유클리드 직선거리
+
+        tp_route_distance = coordDistanceofPoints(matching_pre, candidate); //이전 매칭된point와 후보의 유클리드 직선거리
+        //실제 tp는 직선거리가 아니고 경로상의 거리여야함!!
+
+        dt = Math.abs(tp_gps_distance-tp_route_distance); //gps와 경로 거리 차이 절대값
+        double tp=0;
+        double beta=0;
+
+        beta = tp_median.get(tp_median.size()/2) / (Math.log(2));
+        tp = Math.exp((dt * -1) / beta) / beta;
+
+        System.out.print("tp : ");
+        System.out.println(tp);
+        return tp;
+    }
+
+    public static void Transition_Median(GPSPoint gps_pre, GPSPoint gps, Point matching_pre, Point matching){
+
+        double tp_gps_distance, tp_route_distance;
+        double dt=0;
+
+        Point gpspoint_pre = new Point(0.0, 0.0);
+        gpspoint_pre.setX(gps_pre.getX());
+        gpspoint_pre.setY(gps_pre.getY());
+
+        Point gpspoint = new Point(0.0, 0.0);
+        gpspoint.setX(gps.getX());
+        gpspoint.setY(gps.getY());
+        tp_gps_distance = coordDistanceofPoints(gpspoint_pre, gpspoint); //이전gps_point 와 gps_point의 유클리드 직선거리
+
+        tp_route_distance = coordDistanceofPoints(matching_pre, matching); //이전 실제 point와 실제 point의 유클리드 직선거리
+        //실제 tp는 직선거리가 아니고 경로상의 거리여야함!!
+
+        dt = Math.abs(tp_gps_distance-tp_route_distance); //gps와 경로 거리 차이 절대값
+
+        if(tp_median.size() == 0)
+            tp_median.add(dt);
+
+        else {
+            for (int i = 0; i < tp_median.size(); i++) {
+                if (tp_median.get(i) > dt) {
+                    tp_median.add(i, dt);
+                    break;
+                }
+                if(i == tp_median.size()-1){
+                    tp_median.add(dt);
+                    break;
+                }
+            }//위치 찾고 삽입
+        }
+    }//중앙값 저장
+
+    public static Point Matching(ArrayList<Point> candidates, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList, ArrayList<Point> matching_success, int size){
+        Point matching = new Point(0.0, 0.0);
+
+        double maximun_tpep=0;
+
+        if(size==1 || size==2){
+            double min_ep=0;
+            for(int i =0; i< candidates.size(); i++){
+                if(i==0) {
+                    min_ep = Emission(gpsPointArrayList.get(size-1), candidates.get(i), size); //gpspoint
+                    matching = candidates.get(i);
+                    System.out.println(min_ep);
+                }
+                else if(min_ep > Emission(gpsPointArrayList.get(size-1), candidates.get(i), size) ) {
+                    min_ep = Emission(gpsPointArrayList.get(size-1), candidates.get(i), size);
+                    matching = candidates.get(i);
+                    System.out.println(min_ep);
+                }
+            }
+            return matching;
+        }//첫번째 포인트와 두번째 포인트는 ep만 확인
+
+        maximun_tpep=0;
+        for(int i =0; i< candidates.size(); i++){
+            double tpep=0;
+            tpep = Emission(gpsPointArrayList.get(size-1), candidates.get(i), size) * Transition(gpsPointArrayList.get(size-2), gpsPointArrayList.get(size-1), routePointArrayList.get(size-2), candidates.get(i));
+            System.out.print("tpep : ");
+            System.out.println(tpep);
+            if(maximun_tpep < tpep){
+                maximun_tpep = tpep;
+                matching = candidates.get(i);
+            }
+        }
+
+        System.out.println(ep_median.get(ep_median.size()/2));
+        System.out.println(tp_median.get(tp_median.size()/2));
+
+        return matching;
     }
 
     ////////////////////

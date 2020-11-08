@@ -8,8 +8,8 @@ public class GPSPoint {
         this.timeStamp = timeStamp;
         double gps_x, gps_y;
         Random random = new Random();
-        gps_x = random.nextGaussian()+orgCoordinate.getX();
-        gps_y = random.nextGaussian()+orgCoordinate.getY();
+        gps_x = random.nextGaussian()*0.1+orgCoordinate.getX();
+        gps_y = random.nextGaussian()*0.1+orgCoordinate.getY();
         coordinate = new Point (gps_x, gps_y);
     }
 
